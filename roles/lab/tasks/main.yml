@@ -1,0 +1,51 @@
+---
+- name: Créer les dossiers du lab
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ lab_dir }}"
+    - "{{ lab_answers_dir }}"
+
+- name: Copier les exercices, la CLI et les helpers
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/{{ item }}"
+    dest: "{{ lab_dir }}/"
+    mode: preserve
+  loop:
+    - bin
+    - lib
+    - exercises
+
+- name: Exposer la commande ckad
+  become: true
+  ansible.builtin.file:
+    src: "{{ lab_dir }}/bin/ckad"
+    dest: /usr/local/bin/ckad
+    state: link
+    force: true
+
+- name: Installer l'autocomplétion de ckad
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/bash_completion.d/ckad
+    mode: "0644"
+    content: |
+      _ckad() {
+        local cur=${COMP_WORDS[COMP_CWORD]}
+        if [ "$COMP_CWORD" -eq 1 ]; then
+          COMPREPLY=( $(compgen -W "list start show hint check solution reset exam status" -- "$cur") )
+        else
+          COMPREPLY=( $(compgen -W "all $(ls {{ lab_dir }}/exercises | cut -c1-2)" -- "$cur") )
+        fi
+      }
+      complete -F _ckad ckad
+
+- name: Message de fin
+  ansible.builtin.debug:
+    msg:
+      - "Lab prêt ! Ouvre un nouveau terminal (ou: source ~/.bashrc) puis :"
+      - "  ckad list        # liste des exercices"
+      - "  ckad start 01    # prépare et affiche l'exercice 01"
+      - "  ckad check 01    # corrige ton travail"

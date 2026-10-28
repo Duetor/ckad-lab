@@ -1,0 +1,30 @@
+---
+- name: Lire la version de Helm installée
+  ansible.builtin.command: helm version --template "{{ '{{' }} .Version {{ '}}' }}"
+  register: helm_current
+  changed_when: false
+  failed_when: false
+
+- name: Installer Helm {{ helm_version }}
+  when: helm_current.rc != 0 or helm_current.stdout != helm_version
+  block:
+    - name: Télécharger l'archive Helm
+      ansible.builtin.get_url:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ bin_arch }}.tar.gz"
+        checksum: "sha256:https://get.helm.sh/helm-{{ helm_version }}-linux-{{ bin_arch }}.tar.gz.sha256sum"
+        dest: "/tmp/helm-{{ helm_version }}.tar.gz"
+        mode: "0644"
+
+    - name: Extraire l'archive
+      ansible.builtin.unarchive:
+        src: "/tmp/helm-{{ helm_version }}.tar.gz"
+        dest: /tmp
+        remote_src: true
+
+    - name: Copier le binaire helm
+      become: true
+      ansible.builtin.copy:
+        src: "/tmp/linux-{{ bin_arch }}/helm"
+        dest: /usr/local/bin/helm
+        mode: "0755"
+        remote_src: true

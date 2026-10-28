@@ -1,0 +1,38 @@
+---
+- name: Provision CKAD lab (minikube + outils + exercices)
+  hosts: lab
+  become: false
+  gather_facts: true
+
+  pre_tasks:
+    - name: Vérifier que la cible est Debian/Ubuntu
+      ansible.builtin.assert:
+        that: ansible_os_family == "Debian"
+        fail_msg: "Ce playbook supporte uniquement Debian/Ubuntu (détecté : {{ ansible_distribution }})."
+
+    - name: Vérifier les ressources minimales
+      ansible.builtin.assert:
+        that:
+          - ansible_memtotal_mb >= (minikube_memory_mb | int + 1024)
+          - ansible_processor_vcpus >= (minikube_cpus | int)
+        fail_msg: >-
+          Ressources insuffisantes : {{ ansible_memtotal_mb }} Mo RAM / {{ ansible_processor_vcpus }} vCPU.
+          Il faut au moins {{ minikube_memory_mb | int + 1024 }} Mo et {{ minikube_cpus }} vCPU
+          (ajuste minikube_memory_mb / minikube_cpus dans group_vars/all.yml).
+      when: not (skip_resource_check | default(false) | bool)
+
+  roles:
+    - role: prereqs
+      tags: [prereqs]
+    - role: docker
+      tags: [docker]
+    - role: kubectl
+      tags: [kubectl]
+    - role: helm
+      tags: [helm]
+    - role: minikube
+      tags: [minikube]
+    - role: shell
+      tags: [shell]
+    - role: lab
+      tags: [lab]

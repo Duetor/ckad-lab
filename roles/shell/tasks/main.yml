@@ -1,0 +1,29 @@
+---
+- name: Configurer bash comme à l'examen (alias, complétion, raccourcis)
+  ansible.builtin.blockinfile:
+    path: "{{ lab_home }}/.bashrc"
+    create: true
+    mode: "0644"
+    marker: "# {mark} CKAD LAB (géré par Ansible)"
+    block: |
+      export CKAD_LAB_DIR="{{ lab_dir }}"
+      export CKAD_ANSWERS_DIR="{{ lab_answers_dir }}"
+      source <(kubectl completion bash)
+      source <(helm completion bash)
+      alias k=kubectl
+      complete -o default -F __start_kubectl k
+      # Raccourcis classiques de l'examen
+      export do="--dry-run=client -o yaml"   # k run x --image=nginx $do > pod.yaml
+      export now="--force --grace-period 0"  # k delete pod x $now
+      alias kn='kubectl config set-context --current --namespace'
+
+- name: Configurer vim pour éditer du YAML
+  ansible.builtin.blockinfile:
+    path: "{{ lab_home }}/.vimrc"
+    create: true
+    mode: "0644"
+    marker: "\" {mark} CKAD LAB (géré par Ansible)"
+    block: |
+      set tabstop=2 shiftwidth=2 expandtab autoindent
+      set number ruler
+      syntax on

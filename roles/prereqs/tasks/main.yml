@@ -1,0 +1,23 @@
+---
+- name: Refuser l'exécution en tant que root (minikube + driver docker l'interdit)
+  ansible.builtin.assert:
+    that: lab_user != "root"
+    fail_msg: "Lance le playbook avec ton utilisateur normal (avec -K pour sudo), pas en root."
+
+- name: Installer les paquets de base
+  become: true
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - bash-completion
+      - ca-certificates
+      - conntrack
+      - curl
+      - git
+      - gnupg
+      - jq
+      - tar
+      - vim
+    state: present
+    update_cache: true
+    cache_valid_time: 3600

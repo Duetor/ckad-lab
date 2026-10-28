@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# ckad — petit gestionnaire d'exercices CKAD pour minikube
+set -euo pipefail
+
+LAB_DIR="${CKAD_LAB_DIR:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}"
+EX_DIR="$LAB_DIR/exercises"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/ckad"
+export CKAD_ANSWERS_DIR="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
+mkdir -p "$STATE_DIR" "$CKAD_ANSWERS_DIR"
+
+if [ -t 1 ]; then G=$'\e[32m'; R=$'\e[31m'; Y=$'\e[33m'; B=$'\e[1m'; D=$'\e[2m'; N=$'\e[0m'; else G=; R=; Y=; B=; D=; N=; fi
+
+die() { echo "${R}Erreur :${N} $*" >&2; exit 1; }
+
+usage() {
+  cat <<USAGE
+${B}ckad${N} — entraînement CKAD sur minikube
+
+  ckad list                 Liste les exercices et ta progression
+  ckad start <id>           Prépare l'exercice (namespace propre) et affiche l'énoncé
+  ckad show <id>            Réaffiche l'énoncé
+  ckad hint <id>            Affiche les indices
+  ckad check <id|all>       Corrige ton travail
+  ckad solution <id>        Affiche la solution commentée
+  ckad reset <id|all>       Supprime le namespace et tes réponses
+  ckad exam [minutes]       Mode examen : prépare tous les exercices + chrono (défaut 90 min)
+  ckad status               Temps restant en mode examen
+USAGE
+}
+
+require_cluster() {
+  kubectl get --raw /readyz >/dev/null 2>&1 || die "cluster injoignable. Lance : minikube start -p ckad"
+}
+
+all_ids() { find "$EX_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | cut -c1-2; }
+
+resolve() {
+  [[ "${1:-}" =~ ^[0-9]+$ ]] || die "id d'exercice invalide : '${1:-}' (ex: 01)"
+  local id d
+  id=$(printf '%02d' "$((10#$1))")
+  d=$(find "$EX_DIR" -mindepth 1 -maxdepth 1 -type d -name "${id}-*" | head -1)
+  [ -n "$d" ] || die "exercice $id introuvable (ckad list)"
+  echo "$d"
+}
+
+title()  { head -1 "$1/README.md" | sed 's/^# *//'; }
+domain() { grep -m1 '^\*\*Domaine' "$1/README.md" | sed 's/^.*:\*\* *//'; }
+
+show() {
+  echo
+  sed -n '/^## Indices/q;p' "$1/README.md"
+  echo "${D}(ckad hint $(basename "$1" | cut -c1-2) pour des indices — ckad check $(basename "$1" | cut -c1-2) pour corriger)${N}"
+}
+
+# pad <largeur> <texte> : complète en nombre de caractères (et non d'octets)
+pad() { local s="$2"; printf '%s%*s' "$s" $(( $1 - ${#s} > 0 ? $1 - ${#s} : 0 )) ''; }
+
+cmd_list() {
+  printf '%s%-4s %s %s %s%s\n' "$B" "ID" "$(pad 42 Exercice)" "$(pad 40 Domaine)" "État" "$N"
+  local id d st
+  for id in $(all_ids); do
+    d=$(resolve "$id")
+    if [ -f "$STATE_DIR/$id.ok" ]; then st="${G}✔ réussi${N}"
+    elif [ -f "$STATE_DIR/$id.started" ]; then st="${Y}… en cours${N}"
+    else st="${D}-${N}"; fi
+    printf '%-4s %s %s %s\n' "$id" "$(pad 42 "$(title "$d" | sed 's/^[0-9]* *— *//')")" "$(pad 40 "$(domain "$d" | sed 's/^Application //')")" "$st"
+  done
+}
+
+do_reset() {
+  local id; id=$(basename "$1" | cut -c1-2)
+  kubectl delete namespace "ckad-$id" --ignore-not-found --wait=true >/dev/null
+  rm -f "$CKAD_ANSWERS_DIR/$id"-* "$STATE_DIR/$id.ok" "$STATE_DIR/$id.started"
+}
+
+do_setup() {
+  local id; id=$(basename "$1" | cut -c1-2)
+  do_reset "$1"
+  bash "$1/setup.sh"
+  touch "$STATE_DIR/$id.started"
+}
+
+do_check() {
+  local d="$1" id out rc
+  id=$(basename "$d" | cut -c1-2)
+  echo "${B}== $(title "$d")${N}"
+  set +e
+  out=$(bash "$d/check.sh")
+  rc=$?
+  set -e
+  echo "$out" | grep -v '^SCORE '
+  if [ "$rc" -eq 0 ]; then touch "$STATE_DIR/$id.ok"; else rm -f "$STATE_DIR/$id.ok"; fi
+  LAST_SCORE=$(echo "$out" | sed -n 's/^SCORE //p')
+  return "$rc"
+}
+
+cmd_check() {
+  require_cluster
+  if [ "${1:-}" = "all" ]; then
+    local p=0 t=0 id s
+    for id in $(all_ids); do
+      do_check "$(resolve "$id")" || true
+      s=${LAST_SCORE:-0/0}; p=$((p + ${s%/*})); t=$((t + ${s#*/})); echo
+    done
+    echo "${B}Score global : $p/$t ($(( t > 0 ? p * 100 / t : 0 ))%)${N} — l'examen se réussit à 66%."
+  else
+    do_check "$(resolve "${1:-}")"
+  fi
+}
+
+cmd_exam() {
+  require_cluster
+  local minutes="${1:-90}" id
+  echo "${B}Mode examen : préparation de tous les exercices...${N}"
+  for id in $(all_ids); do
+    printf '  %s %s\n' "$id" "$(title "$(resolve "$id")" | sed 's/^[0-9]* *— *//')"
+    do_setup "$(resolve "$id")" >/dev/null
+  done
+  echo $(( $(date +%s) + minutes * 60 )) > "$STATE_DIR/exam_end"
+  echo
+  echo "${G}C'est parti : ${minutes} minutes.${N} Énoncés : ckad show <id> — temps restant : ckad status — fin : ckad check all"
+}
+
+cmd_status() {
+  [ -f "$STATE_DIR/exam_end" ] || { echo "Aucun examen en cours (ckad exam)."; return; }
+  local left=$(( $(cat "$STATE_DIR/exam_end") - $(date +%s) ))
+  if [ "$left" -le 0 ]; then echo "${R}Temps écoulé !${N} Lance : ckad check all"
+  else printf 'Temps restant : %dmin %02ds\n' $((left / 60)) $((left % 60)); fi
+}
+
+cmd="${1:-help}"; shift || true
+case "$cmd" in
+  list|ls)   cmd_list ;;
+  start)     require_cluster; d=$(resolve "${1:-}"); echo "Préparation de l'exercice..."; do_setup "$d"; show "$d" ;;
+  show)      show "$(resolve "${1:-}")" ;;
+  hint)      sed -n '/^## Indices/,$p' "$(resolve "${1:-}")/README.md" ;;
+  check)     cmd_check "${1:-}" ;;
+  solution)
+    d=$(resolve "${1:-}")
+    if [ -t 0 ]; then read -r -p "Afficher la solution ? Essaie d'abord avec 'ckad hint'. [o/N] " a; [[ "$a" =~ ^[oOyY]$ ]] || exit 0; fi
+    cat "$d/solution.sh" ;;
+  reset)
+    if [ "${1:-}" = "all" ]; then for id in $(all_ids); do do_reset "$(resolve "$id")"; done; rm -f "$STATE_DIR/exam_end"
+    else do_reset "$(resolve "${1:-}")"; fi
+    echo "Réinitialisé." ;;
+  exam)      cmd_exam "${1:-90}" ;;
+  status)    cmd_status ;;
+  help|-h|--help) usage ;;
+  *) usage; exit 1 ;;
+esac

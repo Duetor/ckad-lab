@@ -1,0 +1,2 @@
+# Les check.sh passent volontairement des expressions entre quotes simples à eval
+disable=SC2016,SC2034,SC2088,SC1091

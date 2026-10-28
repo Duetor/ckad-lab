@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installer les linters
+        run: pip install ansible-core ansible-lint yamllint
+      - name: Ansible syntax-check
+        run: ansible-playbook site.yml --syntax-check
+      - name: ansible-lint
+        run: ansible-lint site.yml
+      - name: shellcheck
+        run: shellcheck -x install.sh bin/ckad lib/*.sh exercises/*/*.sh tests/*.sh
+
+  e2e:
+    needs: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer Ansible
+        run: pipx install ansible-core
+      - name: Provisionner le lab (minikube compris)
+        run: ansible-playbook site.yml
+      - name: Rejouer tous les exercices (setup -> solution -> check)
+        run: tests/e2e.sh
+      - name: Diagnostic en cas d'échec
+        if: failure()
+        run: |
+          kubectl get pods -A -o wide
+          kubectl get events -A --sort-by=.lastTimestamp | tail -50

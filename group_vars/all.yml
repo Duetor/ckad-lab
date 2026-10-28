@@ -1,0 +1,30 @@
+---
+# Utilisateur qui fera les exercices (celui qui lance le playbook par défaut)
+lab_user: "{{ ansible_user_id }}"
+lab_home: "{{ ansible_env.HOME }}"
+
+# Architecture binaire (amd64 / arm64)
+bin_arch: "{{ {'x86_64': 'amd64', 'aarch64': 'arm64'}[ansible_architecture] | default('amd64') }}"
+
+# Aligne cette version sur celle annoncée pour l'examen CKAD
+# (https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/)
+kubernetes_version: "v1.34.1"
+kubectl_version: "{{ kubernetes_version }}"
+helm_version: "v3.19.0"
+minikube_version: "latest"
+
+# Cluster minikube
+minikube_profile: "ckad"
+minikube_driver: "docker"
+minikube_cpus: 2
+minikube_memory_mb: 4096
+minikube_cni: "calico"          # nécessaire pour que les NetworkPolicies soient appliquées
+minikube_addons:
+  - ingress
+  - metrics-server
+  - default-storageclass
+  - storage-provisioner
+
+# Emplacement des exercices
+lab_dir: "{{ lab_home }}/ckad-lab"
+lab_answers_dir: "{{ lab_home }}/ckad-answers"
