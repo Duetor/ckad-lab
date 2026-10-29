@@ -5,6 +5,7 @@ set -euo pipefail
 LAB_DIR="${CKAD_LAB_DIR:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}"
 EX_DIR="$LAB_DIR/exercises"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/ckad"
+export MSYS_NO_PATHCONV=1   # Git Bash : pas de conversion des chemins /xxx
 export CKAD_ANSWERS_DIR="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
 mkdir -p "$STATE_DIR" "$CKAD_ANSWERS_DIR"
 

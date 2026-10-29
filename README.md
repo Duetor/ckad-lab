@@ -21,6 +21,19 @@ Ou directement : `ansible-playbook site.yml -K`
 > **WSL2** : active systemd (`[boot]\nsystemd=true` dans `/etc/wsl.conf`, puis `wsl --shutdown`) avant de lancer le playbook.
 > Le playbook est idempotent : tu peux le relancer sans risque, il ne recrée pas le cluster s'il tourne déjà.
 
+## Utiliser un minikube existant (sans le playbook)
+
+La CLI et les exercices marchent sur n'importe quel cluster accessible par `kubectl`, y compris
+depuis **Git Bash sous Windows** (il faut `kubectl`, `helm` et `jq` dans le PATH) :
+
+```bash
+minikube start -p ckad --cni=calico --addons=ingress,metrics-server   # cluster dédié recommandé
+bash tests/preflight.sh        # vérifie outils, add-ons et CNI
+bash bin/ckad list
+bash tests/e2e.sh 01           # rejoue un exercice : setup -> solution -> correction
+bash tests/e2e.sh              # rejoue les 12
+```
+
 ## Utilisation
 
 ```text

@@ -3,7 +3,10 @@
 #   1. setup  -> la correction doit ÉCHOUER (l'exercice n'est pas trivial)
 #   2. solution -> la correction doit RÉUSSIR
 set -uo pipefail
-LAB="${CKAD_LAB_DIR:-$HOME/ckad-lab}"
+# Par défaut : le repo lui-même (fonctionne sans avoir lancé le playbook)
+LAB="${CKAD_LAB_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+export CKAD_LAB_DIR="$LAB" MSYS_NO_PATHCONV=1
+ckad() { bash "$LAB/bin/ckad" "$@"; }
 ONLY="${1:-}"
 failed=()
 

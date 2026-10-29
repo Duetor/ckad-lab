@@ -4,6 +4,8 @@ set -euo pipefail
 NS=ckad-12
 ANS="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
 CHART="${CKAD_LAB_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}/exercises/12-helm/chart/webapp"
+# Git Bash : kubectl.exe/helm.exe attendent un chemin Windows (C:/...)
+command -v cygpath >/dev/null 2>&1 && CHART=$(cygpath -m "$CHART")
 
 helm show values "$CHART"
 helm install shop "$CHART" -n "$NS" --set replicaCount=2,image.tag=1.27-alpine --wait

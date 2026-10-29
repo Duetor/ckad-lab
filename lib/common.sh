@@ -3,6 +3,14 @@
 # shellcheck disable=SC2034
 
 CKAD_ANSWERS_DIR="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
+
+# Compatibilité Git Bash (Windows) :
+#  - empêche MSYS de convertir /etc/db en C:/Program Files/Git/etc/db dans les arguments de kubectl.exe
+#  - jq.exe écrit des fins de ligne CRLF : on retire les \r
+export MSYS_NO_PATHCONV=1
+if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* ]]; then
+  jq() { local out rc; out=$(command jq "$@"); rc=$?; [ -n "$out" ] && printf '%s\n' "${out//$'\r'/}"; return "$rc"; }
+fi
 mkdir -p "$CKAD_ANSWERS_DIR"
 
 if [ -t 1 ]; then G=$'\e[32m'; R=$'\e[31m'; Y=$'\e[33m'; B=$'\e[1m'; N=$'\e[0m'; else G=; R=; Y=; B=; N=; fi

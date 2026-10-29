@@ -4,6 +4,8 @@ set -euo pipefail
 NS=ckad-07
 ANS="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
 LAB="${CKAD_LAB_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
+# Git Bash : kubectl.exe/helm.exe attendent un chemin Windows (C:/...)
+command -v cygpath >/dev/null 2>&1 && LAB=$(cygpath -m "$LAB")
 
 kubectl create cm app-config -n "$NS" --from-literal=APP_MODE=production --from-literal=APP_PORT=8080
 kubectl create cm web-content -n "$NS" --from-file="$LAB/exercises/07-config-secrets/files/index.html"
