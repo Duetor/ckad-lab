@@ -1,5 +1,5 @@
 ---
-- name: Installer minikube ({{ minikube_version }})
+- name: Install minikube ({{ minikube_version }})
   become: true
   ansible.builtin.get_url:
     url: "https://storage.googleapis.com/minikube/releases/{{ minikube_version }}/minikube-linux-{{ bin_arch }}"
@@ -7,19 +7,19 @@
     mode: "0755"
     force: false
 
-- name: Lire l'état du cluster minikube
+- name: Read the minikube cluster status
   ansible.builtin.command: minikube status -p {{ minikube_profile }} -o json
   register: minikube_status
   changed_when: false
   failed_when: false
 
-- name: Déterminer si le cluster tourne déjà (rc=0 seulement si tout est Running)
+- name: Determine whether the cluster is already running (rc=0 only if everything is Running)
   ansible.builtin.set_fact:
     minikube_running: "{{ minikube_status.rc == 0 }}"
 
-# become_user ouvre une nouvelle session : l'appartenance au groupe docker est donc
-# effective même si l'utilisateur vient d'y être ajouté.
-- name: Démarrer minikube (peut prendre plusieurs minutes la première fois)
+# become_user opens a new session, so docker group membership is
+# effective even if the user was just added to it.
+- name: Start minikube (can take several minutes the first time)
   become: true
   become_user: "{{ lab_user }}"
   ansible.builtin.command: >-
@@ -34,32 +34,32 @@
   changed_when: true
   when: not minikube_running | bool
 
-- name: "Définir le profil minikube par défaut {{ minikube_profile }}"
+- name: "Set the default minikube profile: {{ minikube_profile }}"
   ansible.builtin.command: minikube profile {{ minikube_profile }}
   changed_when: false
 
-- name: Attendre que le nœud soit Ready
+- name: Wait for the node to be Ready
   ansible.builtin.command: kubectl wait --for=condition=Ready node --all --timeout=300s
   changed_when: false
 
-- name: Attendre le CNI Calico
+- name: Wait for the Calico CNI
   ansible.builtin.command: >-
     kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=calico-node --timeout=300s
   changed_when: false
   when: minikube_cni == "calico"
 
-- name: Attendre l'ingress controller
+- name: Wait for the ingress controller
   ansible.builtin.command: >-
     kubectl -n ingress-nginx wait --for=condition=Available deploy/ingress-nginx-controller --timeout=300s
   changed_when: false
   when: "'ingress' in minikube_addons"
 
-- name: Récupérer l'IP du cluster
+- name: Get the cluster IP
   ansible.builtin.command: minikube ip -p {{ minikube_profile }}
   register: minikube_ip
   changed_when: false
 
-- name: Résoudre ckad.local vers minikube (exercice Ingress)
+- name: Resolve ckad.local to minikube (Ingress exercise)
   become: true
   ansible.builtin.lineinfile:
     path: /etc/hosts

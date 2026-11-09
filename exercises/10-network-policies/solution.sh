@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Solution — exercice 10
+# Solution — exercise 10
 set -euo pipefail
 NS=ckad-10
 
@@ -44,5 +44,5 @@ spec:
         - protocol: TCP
           port: 80
 YAML
-sleep 5   # le CNI (Calico) applique les règles en quelques secondes
+sleep 5   # the CNI (Calico) applies the rules within a few seconds
 kubectl exec frontend -n "$NS" -- wget -qO- -T 3 http://backend | head -4

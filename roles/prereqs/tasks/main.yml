@@ -1,10 +1,10 @@
 ---
-- name: Refuser l'exécution en tant que root (minikube + driver docker l'interdit)
+- name: Refuse to run as root (minikube with the docker driver forbids it)
   ansible.builtin.assert:
     that: lab_user != "root"
-    fail_msg: "Lance le playbook avec ton utilisateur normal (avec -K pour sudo), pas en root."
+    fail_msg: "Run the playbook as your normal user (with -K for sudo), not as root."
 
-- name: Installer les paquets de base
+- name: Install base packages
   become: true
   ansible.builtin.apt:
     name:

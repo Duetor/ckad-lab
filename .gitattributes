@@ -1,2 +1,2 @@
-# Les scripts doivent garder des fins de ligne LF, même clonés sous Windows
+# Scripts must keep LF line endings, even when cloned on Windows
 * text=auto eol=lf

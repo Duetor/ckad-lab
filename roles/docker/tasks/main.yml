@@ -1,25 +1,25 @@
 ---
-- name: Détecter une installation Docker existante
+- name: Detect an existing Docker installation
   ansible.builtin.command: docker --version
   register: docker_present
   changed_when: false
   failed_when: false
 
-- name: Installer Docker (paquet docker.io de la distribution)
+- name: Install Docker (distribution docker.io package)
   become: true
   ansible.builtin.apt:
     name: docker.io
     state: present
   when: docker_present.rc != 0
 
-- name: Démarrer et activer le service Docker
+- name: Start and enable the Docker service
   become: true
   ansible.builtin.systemd_service:
     name: docker
     state: started
     enabled: true
 
-- name: "Ajouter au groupe docker l'utilisateur {{ lab_user }}"
+- name: "Add user to the docker group: {{ lab_user }}"
   become: true
   ansible.builtin.user:
     name: "{{ lab_user }}"

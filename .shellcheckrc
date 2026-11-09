@@ -1,2 +1,2 @@
-# Les check.sh passent volontairement des expressions entre quotes simples à eval
+# check.sh files intentionally pass single-quoted expressions to eval
 disable=SC2016,SC2034,SC2088,SC1091,SC2015

@@ -1,35 +1,36 @@
 # 10 — NetworkPolicies
 
-**Domaine :** Services and Networking
-**Namespace :** `ckad-10`  ·  **Temps conseillé :** 9 min
+**Domain:** Services and Networking
+**Namespace:** `ckad-10`  ·  **Suggested time:** 9 min
 
-## Contexte
+## Context
 
-Le namespace `ckad-10` contient 4 pods (regarde leurs labels !) :
-`frontend`, `backend` (+ Service `backend`), `db` (+ Service `db`) et `intruder`.
-Aujourd'hui tout le monde peut parler à tout le monde.
+Namespace `ckad-10` contains 4 pods (look at their labels!):
+`frontend`, `backend` (+ Service `backend`), `db` (+ Service `db`) and `intruder`.
+Right now everyone can talk to everyone.
 
-## Tâches
+## Tasks
 
-1. NetworkPolicy `default-deny` : bloque **tout le trafic entrant** vers **tous** les pods du namespace.
-2. NetworkPolicy `allow-frontend-to-backend` : `backend` n'accepte que le trafic venant de
-   `frontend`, en **TCP/80**.
-3. NetworkPolicy `allow-backend-to-db` : `db` n'accepte que le trafic venant de `backend`, en **TCP/80**.
-4. Ne modifie **pas** les labels des pods.
+1. NetworkPolicy `default-deny`: blocks **all incoming traffic** to **all** pods in the namespace.
+2. NetworkPolicy `allow-frontend-to-backend`: `backend` only accepts traffic from
+   `frontend`, on **TCP/80**.
+3. NetworkPolicy `allow-backend-to-db`: `db` only accepts traffic from `backend`, on **TCP/80**.
+4. Do **not** change the pod labels.
 
-Résultat attendu :
+Expected result:
 
-| Source → Destination | Attendu |
+| Source → Destination | Expected |
 |---|---|
 | frontend → backend | ✅ |
 | backend → db | ✅ |
 | frontend → db | ❌ |
 | intruder → backend | ❌ |
 
-## Indices
+## Hints
 
 - `k get pods -n ckad-10 --show-labels`
-- Pas de `kubectl create netpol` : pars de la doc kubernetes.io (accessible à l'examen) ou `k explain networkpolicy.spec`.
-- Une policy `podSelector: {}` + `policyTypes: [Ingress]` sans règle = deny all ingress.
-- Test : `k exec frontend -n ckad-10 -- wget -qO- -T 3 http://db`
-- Les policies s'additionnent : l'ordre n'a pas d'importance.
+- There's no `kubectl create netpol`: start from the kubernetes.io docs (allowed during the exam) or `k explain networkpolicy.spec`.
+- A policy with `podSelector: {}` + `policyTypes: [Ingress]` and no rules = deny all ingress.
+- Test: `k exec frontend -n ckad-10 -- wget -qO- -T 3 http://db`
+- Policies add up: their order doesn't matter.
+- This exercise needs a CNI that enforces NetworkPolicies (Calico): `minikube start -p ckad --cni=calico`.

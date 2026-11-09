@@ -1,115 +1,141 @@
 # ckad-lab
 
-Lab d'entraînement **CKAD** reproductible : un playbook **Ansible** installe Docker, kubectl, Helm et
-**minikube** (CNI Calico + Ingress NGINX + metrics-server), configure le shell comme à l'examen,
-puis installe **12 exercices** auto-corrigés couvrant les 5 domaines du programme.
+A reproducible **CKAD** practice lab: an **Ansible** playbook installs Docker, kubectl, Helm and
+**minikube** (Calico CNI + Ingress NGINX + metrics-server), sets up the shell like in the exam,
+then installs **22 auto-graded exercises** covering the 5 domains of the curriculum.
 
-## Démarrage rapide
+➡️ **New here? Read [PRACTICE.md](PRACTICE.md)**: how to run an exercise, get it graded and use the hints.
 
-Sur une machine **Ubuntu/Debian** (VM, WSL2 ou bare metal — 2 vCPU et ~6 Go de RAM minimum) :
+## Quick start
+
+### Option A — Ubuntu/Debian (VM, WSL2 or bare metal): full install with Ansible
+
+2 vCPU and ~6 GB of RAM minimum.
 
 ```bash
-git clone https://github.com/<ton-compte>/ckad-lab.git
+git clone https://github.com/<your-account>/ckad-lab.git
 cd ckad-lab
-./install.sh            # installe Ansible si besoin, puis lance le playbook (demande ton mot de passe sudo)
+./install.sh            # installs Ansible if needed, then runs the playbook (asks for your sudo password)
 source ~/.bashrc
 ckad list
 ```
 
-Ou directement : `ansible-playbook site.yml -K`
+Or directly: `ansible-playbook site.yml -K`
 
-> **WSL2** : active systemd (`[boot]\nsystemd=true` dans `/etc/wsl.conf`, puis `wsl --shutdown`) avant de lancer le playbook.
-> Le playbook est idempotent : tu peux le relancer sans risque, il ne recrée pas le cluster s'il tourne déjà.
+> **WSL2**: enable systemd (`[boot]` / `systemd=true` in `/etc/wsl.conf`, then `wsl --shutdown`) before running the playbook.
+> The playbook is idempotent: you can run it again safely, it won't recreate a running cluster.
 
-## Utiliser un minikube existant (sans le playbook)
+### Option B — an existing minikube (Windows + Docker Desktop, macOS…): no Ansible
 
-La CLI et les exercices marchent sur n'importe quel cluster accessible par `kubectl`, y compris
-depuis **Git Bash sous Windows** (il faut `kubectl`, `helm` et `jq` dans le PATH) :
+The CLI and the exercises work on any cluster reachable with `kubectl`, including from
+**Git Bash on Windows** (you need `kubectl`, `helm`, `jq` and `minikube` on your PATH):
 
 ```bash
-minikube start -p ckad --cni=calico --addons=ingress,metrics-server   # cluster dédié recommandé
-bash tests/preflight.sh        # vérifie outils, add-ons et CNI
+minikube start -p ckad --driver=docker --cni=calico --addons=ingress,metrics-server --memory=4096
+bash tests/preflight.sh        # checks tools, add-ons and CNI
 bash bin/ckad list
-bash tests/e2e.sh 01           # rejoue un exercice : setup -> solution -> correction
-bash tests/e2e.sh              # rejoue les 12
 ```
 
-## Utilisation
+Windows: `winget install jqlang.jq Helm.Helm` for the missing tools.
+
+## Commands
 
 ```text
-ckad list                 Liste les exercices et ta progression
-ckad start 03             Prépare l'exercice (namespace propre) et affiche l'énoncé
-ckad hint 03              Indices
-ckad check 03             Correction automatique
-ckad solution 03          Solution commentée
-ckad reset 03|all         Remet à zéro
-ckad exam 90              Mode examen : tous les exercices + chrono
-ckad status               Temps restant
-ckad check all            Score global (l'examen se réussit à 66 %)
+ckad list                 List the exercises and your progress
+ckad start 03             Set up the exercise (fresh namespace) and print the task
+ckad hint 03              Hints
+ckad check 03             Automatic grading
+ckad solution 03          Commented solution
+ckad reset 03|all         Start over
+ckad exam 120             Exam mode: every exercise + a timer
+ckad status               Time left
+ckad check all            Global score (the exam pass mark is 66%)
 ```
 
-Les fichiers de réponse attendus par certains exercices vont dans `~/ckad-answers/`.
+Answer files expected by some exercises go to `~/ckad-answers/`.
 
-Le shell est configuré comme à l'examen : `alias k=kubectl` + complétion, `$do` (`--dry-run=client -o yaml`),
-`$now` (`--force --grace-period 0`), vim en indentation 2 espaces.
+With the Ansible install, the shell is configured like in the exam: `alias k=kubectl` + completion,
+`$do` (`--dry-run=client -o yaml`), `$now` (`--force --grace-period 0`), vim with 2-space indentation.
 
-## Exercices
+## Exercises
 
-| # | Sujet | Domaine CKAD |
+| # | Topic | CKAD domain |
 |---|---|---|
-| 01 | Pod multi-conteneurs / sidecar | Application Design and Build |
-| 02 | Job parallèle et CronJob | Application Design and Build |
-| 03 | Rolling update et rollback | Application Deployment |
-| 04 | Déploiement canary | Application Deployment |
-| 05 | Probes et ressources | Observability and Maintenance |
-| 06 | Dépannage d'une application cassée | Observability and Maintenance |
-| 07 | ConfigMaps et Secrets | Environment, Configuration and Security |
+| 01 | Multi-container pod / sidecar | Application Design and Build |
+| 02 | Parallel Job and CronJob | Application Design and Build |
+| 03 | Rolling update and rollback | Application Deployment |
+| 04 | Canary deployment | Application Deployment |
+| 05 | Probes and resources | Observability and Maintenance |
+| 06 | Troubleshooting a broken application | Observability and Maintenance |
+| 07 | ConfigMaps and Secrets | Environment, Configuration and Security |
 | 08 | ServiceAccount, RBAC, SecurityContext | Environment, Configuration and Security |
-| 09 | ResourceQuota et LimitRange | Environment, Configuration and Security |
+| 09 | ResourceQuota and LimitRange | Environment, Configuration and Security |
 | 10 | NetworkPolicies | Services and Networking |
-| 11 | Services et Ingress | Services and Networking |
-| 12 | Helm : install, upgrade, rollback | Application Deployment |
+| 11 | Services and Ingress | Services and Networking |
+| 12 | Helm: install, upgrade, rollback | Application Deployment |
+| 13 | Init container (variant of 01) | Application Design and Build |
+| 14 | Native sidecar in a Deployment (variant of 01) | Application Design and Build |
+| 15 | Adapter pattern (variant of 01) | Application Design and Build |
+| 16 | Troubleshooting a multi-container pod (variant of 01) | Observability and Maintenance |
+| 17 | PVC and data persistence | Environment, Configuration and Security |
+| 18 | Kustomize: production overlay | Application Deployment |
+| 19 | Migrating deprecated APIs | Application Deployment |
+| 20 | Build an image and deploy it | Application Design and Build |
+| 21 | Labels, selectors and annotations | Application Deployment |
+| 22 | Debugging without a shell (kubectl debug) | Observability and Maintenance |
 
-## Structure
+## Layout
 
 ```text
 .
-├── site.yml                  # playbook principal
-├── group_vars/all.yml        # versions (k8s, helm), ressources minikube, chemins
-├── inventory/hosts.ini       # localhost par défaut (ou une VM distante)
+├── PRACTICE.md               # how to practice: run / check / hints
+├── site.yml                  # main playbook
+├── group_vars/all.yml        # versions (k8s, helm), minikube resources, paths
+├── inventory/hosts.ini       # localhost by default (or a remote VM)
 ├── roles/
-│   ├── prereqs/              # paquets de base
-│   ├── docker/               # docker.io + groupe docker
-│   ├── kubectl/              # binaire vérifié par sha256
+│   ├── prereqs/              # base packages
+│   ├── docker/               # docker.io + docker group
+│   ├── kubectl/              # binary verified with sha256
 │   ├── helm/
-│   ├── minikube/             # install + start idempotent + /etc/hosts
-│   ├── shell/                # alias, complétion, vimrc
-│   └── lab/                  # copie exercices + CLI ckad
+│   ├── minikube/             # idempotent install + start + /etc/hosts
+│   ├── shell/                # aliases, completion, vimrc
+│   └── lab/                  # copies the exercises + the ckad CLI
 ├── bin/ckad                  # CLI
-├── lib/common.sh             # helpers de correction
+├── lib/common.sh             # grading helpers
 ├── exercises/NN-xxx/         # README.md, setup.sh, check.sh, solution.sh
-├── tests/e2e.sh              # setup -> check KO -> solution -> check OK
-└── .github/workflows/ci.yml  # lint + test e2e complet sur runner GitHub
+├── tests/preflight.sh        # checks your environment
+├── tests/e2e.sh              # setup -> check fails -> solution -> check passes
+└── .github/workflows/ci.yml  # lint + full e2e test on a GitHub runner
 ```
 
-## Personnaliser
+## Testing the lab itself
 
-- **Version Kubernetes** : `kubernetes_version` dans `group_vars/all.yml` — aligne-la sur celle annoncée
-  par la Linux Foundation pour l'examen.
-- **Ressources** : `minikube_cpus`, `minikube_memory_mb`.
-- **Machine distante** : modifie `inventory/hosts.ini` (`ansible_host`, `ansible_user`).
-- **Rejouer une partie** : `ansible-playbook site.yml -K --tags lab` (ex : après avoir ajouté un exercice).
+```bash
+bash tests/e2e.sh 13      # replay one exercise: setup -> solution -> grading
+bash tests/e2e.sh         # replay all 22 (~20-30 min, image downloads)
+bash bin/ckad reset all   # then clean up before practicing for real
+```
 
-## Ajouter un exercice
+The GitHub Actions CI runs the lint and this full test on every push.
 
-Crée `exercises/13-mon-sujet/` avec :
+## Customizing
 
-- `README.md` — 1re ligne `# 13 — Titre`, une ligne `**Domaine :** ...`, puis une section `## Indices` à la fin ;
-- `setup.sh` — crée le namespace `ckad-13` (`fresh_ns ckad-13`) et l'état initial ;
-- `check.sh` — une suite de `check "description" 'expression bash'` terminée par `summary` ;
-- `solution.sh` — doit faire passer `check.sh` (vérifié par la CI).
+- **Kubernetes version**: `kubernetes_version` in `group_vars/all.yml` — align it with the version
+  announced by the Linux Foundation for the exam.
+- **Resources**: `minikube_cpus`, `minikube_memory_mb`.
+- **Remote machine**: edit `inventory/hosts.ini` (`ansible_host`, `ansible_user`).
+- **Re-run one part**: `ansible-playbook site.yml -K --tags lab` (e.g. after adding an exercise).
 
-## Nettoyage
+## Adding an exercise
+
+Create `exercises/23-my-topic/` with:
+
+- `README.md` — first line `# 23 — Title`, a `**Domain:** ...` line, then a `## Hints` section at the end;
+- `setup.sh` — creates the namespace `ckad-23` (`fresh_ns ckad-23`) and the initial state;
+- `check.sh` — a list of `check "description" 'bash expression'` ending with `summary`;
+- `solution.sh` — must make `check.sh` pass (verified by the CI).
+
+## Cleanup
 
 ```bash
 minikube delete -p ckad

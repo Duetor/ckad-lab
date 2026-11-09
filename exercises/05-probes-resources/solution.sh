@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Solution — exercice 05
+# Solution — exercise 05
 set -euo pipefail
 NS=ckad-05
 ANS="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
@@ -40,7 +40,7 @@ spec:
 YAML
 kubectl rollout status deploy/api -n "$NS" --timeout=180s
 
-# metrics-server a besoin d'un peu de temps pour collecter les métriques
+# metrics-server needs a little time to collect metrics
 for _ in $(seq 1 30); do
   kubectl top pods -n "$NS" > "$ANS/05-top.txt" 2>/dev/null && grep -q '^api-' "$ANS/05-top.txt" && break
   sleep 10

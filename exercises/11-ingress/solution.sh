@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Solution — exercice 11
+# Solution — exercise 11
 set -euo pipefail
 NS=ckad-11
 
@@ -10,6 +10,6 @@ kubectl create ingress apps -n "$NS" --class=nginx \
   --rule="ckad.local/a*=svc-a:8080" \
   --rule="ckad.local/b*=svc-b:8080"
 
-# L'ingress controller met quelques secondes à prendre la config
+# The ingress controller takes a few seconds to pick up the config
 sleep 10
-curl -s --max-time 5 http://ckad.local/a || echo "(curl depuis l'hôte indisponible ici, test in-cluster via ckad check 11)"
+curl -s --max-time 5 http://ckad.local/a || echo "(curl from the host not available here, in-cluster test via ckad check 11)"

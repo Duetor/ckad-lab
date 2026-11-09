@@ -1,26 +1,27 @@
-# 11 — Services et Ingress
+# 11 — Services and Ingress
 
-**Domaine :** Services and Networking
-**Namespace :** `ckad-11`  ·  **Temps conseillé :** 8 min
+**Domain:** Services and Networking
+**Namespace:** `ckad-11`  ·  **Suggested time:** 8 min
 
-## Contexte
+## Context
 
-Deux Deployments tournent dans `ckad-11` : `app-a` et `app-b` (serveurs `http-echo` qui écoutent sur le port **5678**).
+Two Deployments run in `ckad-11`: `app-a` and `app-b` (`http-echo` servers listening on port **5678**).
 
-## Tâches
+## Tasks
 
-1. Expose `app-a` via un Service `ClusterIP` nommé `svc-a` sur le port **8080** (vers le port 5678 des pods).
-2. Même chose pour `app-b` avec le Service `svc-b`.
-3. Crée un Ingress `apps` (ingressClass `nginx`) pour l'hôte `ckad.local` :
+1. Expose `app-a` with a `ClusterIP` Service named `svc-a` on port **8080** (to the pods' port 5678).
+2. Same for `app-b` with the Service `svc-b`.
+3. Create an Ingress `apps` (ingressClass `nginx`) for host `ckad.local`:
    - `/a` (type `Prefix`) → `svc-a:8080`
    - `/b` (type `Prefix`) → `svc-b:8080`
-4. Vérifie depuis ta machine : `curl http://ckad.local/a` doit répondre `Hello from A`.
-   (Ansible a ajouté `ckad.local` dans `/etc/hosts`.)
+4. Check: `curl http://ckad.local/a` must answer `Hello from A`.
 
-## Indices
+## Hints
 
 - `k expose deploy app-a --name=svc-a --port=8080 --target-port=5678 -n ckad-11`
 - `k create ingress apps --class=nginx --rule="ckad.local/a*=svc-a:8080" --rule=... -n ckad-11`
-  (le `*` final donne `pathType: Prefix`)
-- `k describe ingress apps -n ckad-11` : vérifie les backends et leurs endpoints.
-- Si `curl` échoue : `minikube ip -p ckad` doit correspondre à la ligne `ckad.local` de `/etc/hosts`.
+  (the trailing `*` gives `pathType: Prefix`)
+- `k describe ingress apps -n ckad-11`: check the backends and their endpoints.
+- Linux (Ansible install): `ckad.local` is already in `/etc/hosts`.
+- Windows + Docker driver: run `minikube tunnel -p ckad` in an admin terminal and add
+  `127.0.0.1 ckad.local` to `C:\Windows\System32\drivers\etc\hosts`. `ckad check 11` works without it.

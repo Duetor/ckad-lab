@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Solution — exercice 12
+# Solution — exercise 12
 set -euo pipefail
 NS=ckad-12
 ANS="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
 CHART="${CKAD_LAB_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}/exercises/12-helm/chart/webapp"
-# Git Bash : kubectl.exe/helm.exe attendent un chemin Windows (C:/...)
+# Git Bash: kubectl.exe/helm.exe expect a Windows path (C:/...)
 command -v cygpath >/dev/null 2>&1 && CHART=$(cygpath -m "$CHART")
 
 helm show values "$CHART"
 helm install shop "$CHART" -n "$NS" --set replicaCount=2,image.tag=1.27-alpine --wait
 helm upgrade shop "$CHART" -n "$NS" --reuse-values --set service.type=NodePort --wait
 
-# Upgrade cassé (sans --wait, sinon on attend le timeout)
+# Broken upgrade (no --wait, otherwise we'd wait for the timeout)
 helm upgrade shop "$CHART" -n "$NS" --reuse-values --set image.tag=9.9-broken
 sleep 5
 kubectl get pods -n "$NS"          # ImagePullBackOff

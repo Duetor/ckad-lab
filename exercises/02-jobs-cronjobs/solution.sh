@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Solution — exercice 02
+# Solution — exercise 02
 set -euo pipefail
 NS=ckad-02
 
-# 1. Job : on génère le squelette puis on complète
+# 1. Job: generate the skeleton, then complete it
 kubectl apply -n "$NS" -f - <<'YAML'
 apiVersion: batch/v1
 kind: Job
@@ -46,5 +46,5 @@ spec:
               command: ["echo", "cleanup done"]
 YAML
 
-# 3. Déclenchement manuel
+# 3. Manual trigger
 kubectl create job cleanup-manual --from=cronjob/cleanup -n "$NS"

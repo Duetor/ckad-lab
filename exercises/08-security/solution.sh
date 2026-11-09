@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Solution — exercice 08
+# Solution — exercise 08
 set -euo pipefail
 NS=ckad-08
 
@@ -14,14 +14,14 @@ metadata:
   name: secure
 spec:
   serviceAccountName: monitor
-  securityContext:          # niveau pod
+  securityContext:          # pod level
     runAsUser: 1000
     runAsGroup: 3000
   containers:
     - name: secure
       image: busybox:1.36
       command: ["sleep", "3600"]
-      securityContext:      # niveau conteneur
+      securityContext:      # container level
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
         capabilities:

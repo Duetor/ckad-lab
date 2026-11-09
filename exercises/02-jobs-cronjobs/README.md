@@ -1,30 +1,30 @@
-# 02 — Job parallèle et CronJob
+# 02 — Parallel Job and CronJob
 
-**Domaine :** Application Design and Build
-**Namespace :** `ckad-02`  ·  **Temps conseillé :** 7 min
+**Domain:** Application Design and Build
+**Namespace:** `ckad-02`  ·  **Suggested time:** 7 min
 
-## Tâches
+## Tasks
 
-1. Crée un **Job** `countdown` (image `busybox:1.36`) qui exécute
-   `sh -c 'for i in 3 2 1; do echo $i; sleep 1; done; echo liftoff'` avec :
+1. Create a **Job** `countdown` (image `busybox:1.36`) running
+   `sh -c 'for i in 3 2 1; do echo $i; sleep 1; done; echo liftoff'` with:
    - `completions: 3`
    - `parallelism: 2`
    - `backoffLimit: 4`
-   - les pods ne doivent jamais redémarrer en place (`restartPolicy: Never`)
+   - pods must never be restarted in place (`restartPolicy: Never`)
 
-   Attends que le Job soit terminé (3 complétions réussies).
+   Wait for the Job to finish (3 successful completions).
 
-2. Crée un **CronJob** `cleanup` (image `busybox:1.36`, commande `echo cleanup done`) :
-   - planifié **toutes les 15 minutes**
+2. Create a **CronJob** `cleanup` (image `busybox:1.36`, command `echo cleanup done`):
+   - scheduled **every 15 minutes**
    - `concurrencyPolicy: Forbid`
-   - conserve **2** jobs réussis et **1** job échoué dans l'historique
-   - un job démarré doit être tué s'il dure plus de **30 secondes** (`activeDeadlineSeconds`)
+   - keeps **2** successful and **1** failed job in its history
+   - a started job must be killed if it runs longer than **30 seconds** (`activeDeadlineSeconds`)
 
-3. Déclenche manuellement le CronJob en créant un Job `cleanup-manual` à partir de celui-ci.
+3. Trigger the CronJob manually by creating a Job `cleanup-manual` from it.
 
-## Indices
+## Hints
 
-- `k create job countdown --image=busybox:1.36 $do -- sh -c '...'` puis ajoute completions/parallelism.
+- `k create job countdown --image=busybox:1.36 $do -- sh -c '...'` then add completions/parallelism.
 - `k create cronjob cleanup --image=busybox:1.36 --schedule='*/15 * * * *' $do -- echo cleanup done`
-- `activeDeadlineSeconds` se place dans `spec.jobTemplate.spec`.
+- `activeDeadlineSeconds` goes in `spec.jobTemplate.spec`.
 - `k create job cleanup-manual --from=cronjob/cleanup -n ckad-02`

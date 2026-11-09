@@ -1,21 +1,21 @@
-# 08 — ServiceAccount, RBAC et SecurityContext
+# 08 — ServiceAccount, RBAC and SecurityContext
 
-**Domaine :** Application Environment, Configuration and Security
-**Namespace :** `ckad-08`  ·  **Temps conseillé :** 9 min
+**Domain:** Application Environment, Configuration and Security
+**Namespace:** `ckad-08`  ·  **Suggested time:** 9 min
 
-## Tâches
+## Tasks
 
-1. Crée le ServiceAccount `monitor`.
-2. Crée le Role `pod-reader` autorisant `get`, `list`, `watch` sur les `pods` (et rien d'autre).
-3. Lie ce Role au ServiceAccount `monitor` avec le RoleBinding `monitor-binding`.
-4. Crée un pod `secure` (image `busybox:1.36`, commande `sleep 3600`) qui :
-   - utilise le ServiceAccount `monitor` ;
-   - s'exécute avec l'UID `1000` et le GID `3000` (au niveau du **pod**) ;
-   - empêche l'escalade de privilèges, a un système de fichiers racine en **lecture seule**,
-     et supprime **toutes** les capabilities Linux (au niveau du **conteneur**).
-5. Vérifie avec `kubectl auth can-i` que `monitor` peut lister les pods mais **pas** les supprimer.
+1. Create the ServiceAccount `monitor`.
+2. Create the Role `pod-reader` allowing `get`, `list`, `watch` on `pods` (and nothing else).
+3. Bind this Role to the ServiceAccount `monitor` with the RoleBinding `monitor-binding`.
+4. Create a pod `secure` (image `busybox:1.36`, command `sleep 3600`) that:
+   - uses the ServiceAccount `monitor`;
+   - runs with UID `1000` and GID `3000` (at **pod** level);
+   - prevents privilege escalation, has a **read-only** root filesystem,
+     and drops **all** Linux capabilities (at **container** level).
+5. Use `kubectl auth can-i` to check that `monitor` can list pods but can **not** delete them.
 
-## Indices
+## Hints
 
 - `k create sa monitor` ; `k create role pod-reader --verb=get,list,watch --resource=pods`
 - `k create rolebinding monitor-binding --role=pod-reader --serviceaccount=ckad-08:monitor`

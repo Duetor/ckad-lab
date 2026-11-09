@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Solution — exercice 09
+# Solution — exercise 09
 set -euo pipefail
 NS=ckad-09
 ANS="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
@@ -19,8 +19,8 @@ spec:
       default: {cpu: 200m, memory: 256Mi}
 YAML
 
-# Avec une quota sur les ressources, un pod sans requests/limits serait REFUSÉ…
-# … sauf si une LimitRange fournit des valeurs par défaut (d'où l'ordre).
+# With a resource quota, a pod without requests/limits would be REJECTED...
+# ...unless a LimitRange provides defaults (hence the order).
 kubectl create deploy worker -n "$NS" --image=busybox:1.36 --replicas=3 -- sleep 3600
 kubectl rollout status deploy/worker -n "$NS" --timeout=120s
 

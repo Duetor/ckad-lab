@@ -5,7 +5,7 @@ NS=ckad-05
 C='.spec.template.spec.containers[0]'
 c() { jp deploy api -n "$NS" -o jsonpath="{$C$1}"; }
 
-check "Deployment api : 2 réplicas disponibles en nginx:1.27-alpine" \
+check "Deployment api: 2 available replicas running nginx:1.27-alpine" \
   '[ "$(c .image)" = nginx:1.27-alpine ] && [ "$(jp deploy api -n $NS -o jsonpath={.status.availableReplicas})" = 2 ]'
 check "readinessProbe httpGet / :80 (delay 5, period 10)" \
   '[ "$(c .readinessProbe.httpGet.path)|$(c .readinessProbe.httpGet.port)|$(c .readinessProbe.initialDelaySeconds)|$(c .readinessProbe.periodSeconds)" = "/|80|5|10" ]'
@@ -17,7 +17,7 @@ check "requests cpu=100m memory=64Mi" \
   '[ "$(c .resources.requests.cpu)|$(c .resources.requests.memory)" = "100m|64Mi" ]'
 check "limits cpu=250m memory=128Mi" \
   '[ "$(c .resources.limits.cpu)|$(c .resources.limits.memory)" = "250m|128Mi" ]'
-check "~/ckad-answers/05-top.txt contient la sortie de kubectl top" \
+check "~/ckad-answers/05-top.txt contains the kubectl top output" \
   'grep -q "^api-" "$CKAD_ANSWERS_DIR/05-top.txt" && grep -q "CPU" "$CKAD_ANSWERS_DIR/05-top.txt"'
 
 summary

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Solution — exercice 01
+# Solution — exercise 01
 set -euo pipefail
 NS=ckad-01
 

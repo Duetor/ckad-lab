@@ -1,15 +1,18 @@
-.PHONY: install lab lint destroy
+.PHONY: install lab lint test destroy
 
-install:          ## Provisionne tout (prérequis, docker, kubectl, helm, minikube, lab)
+install:          ## Provision everything (prereqs, docker, kubectl, helm, minikube, lab)
 	ansible-playbook site.yml -K
 
-lab:              ## Recopie seulement les exercices / la CLI
+lab:              ## Re-copy only the exercises / the CLI
 	ansible-playbook site.yml --tags lab -K
 
-lint:             ## Lint Ansible + scripts shell
+lint:             ## Lint Ansible + shell scripts
 	ansible-playbook site.yml --syntax-check
 	ansible-lint site.yml
-	shellcheck -x bin/ckad lib/*.sh exercises/*/*.sh
+	shellcheck -x install.sh bin/ckad lib/*.sh exercises/*/*.sh tests/*.sh
 
-destroy:          ## Supprime le cluster minikube
+test:             ## Replay every exercise on the current cluster
+	bash tests/e2e.sh
+
+destroy:          ## Delete the minikube cluster
 	minikube delete -p ckad

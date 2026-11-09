@@ -13,14 +13,14 @@ svc_ok() {
 rule() { jp ingress apps -n "$NS" -o json | jq -e --arg p "$1" --arg s "$2" \
   '.spec.rules[] | select(.host=="ckad.local") | .http.paths[] | select(.path==$p and .pathType=="Prefix" and .backend.service.name==$s and .backend.service.port.number==8080)'; }
 
-check "svc-a : ClusterIP 8080 → 5678"  'svc_ok svc-a'
-check "svc-b : ClusterIP 8080 → 5678"  'svc_ok svc-b'
-check "svc-a répond Hello from A"       'http_from $NS http://svc-a:8080 | grep -q "Hello from A"'
-check "Ingress apps : ingressClassName nginx" \
+check "svc-a: ClusterIP 8080 → 5678"  'svc_ok svc-a'
+check "svc-b: ClusterIP 8080 → 5678"  'svc_ok svc-b'
+check "svc-a answers Hello from A"       'http_from $NS http://svc-a:8080 | grep -q "Hello from A"'
+check "Ingress apps: ingressClassName nginx" \
   '[ "$(jp ingress apps -n $NS -o jsonpath={.spec.ingressClassName})" = nginx ]'
-check "Règle ckad.local/a (Prefix) → svc-a:8080" 'rule /a svc-a'
-check "Règle ckad.local/b (Prefix) → svc-b:8080" 'rule /b svc-b'
-check "http://ckad.local/a répond via l'ingress" 'via_ingress /a | grep -q "Hello from A"'
-check "http://ckad.local/b répond via l'ingress" 'via_ingress /b | grep -q "Hello from B"'
+check "Rule ckad.local/a (Prefix) → svc-a:8080" 'rule /a svc-a'
+check "Rule ckad.local/b (Prefix) → svc-b:8080" 'rule /b svc-b'
+check "http://ckad.local/a answers through the ingress" 'via_ingress /a | grep -q "Hello from A"'
+check "http://ckad.local/b answers through the ingress" 'via_ingress /b | grep -q "Hello from B"'
 
 summary

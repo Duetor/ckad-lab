@@ -1,0 +1,77 @@
+# Manifest inherited from an old cluster: it no longer applies on a recent Kubernetes.
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: legacy-app
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: legacy-app
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: legacy-app
+spec:
+  selector:
+    app: legacy-app
+  ports:
+    - port: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: legacy-ing
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: legacy.local
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: legacy-app
+              servicePort: 80
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: legacy-cron
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: busybox:1.36
+              command: ["echo", "backup"]
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: legacy-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: legacy-app
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

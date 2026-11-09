@@ -1,6 +1,6 @@
 apiVersion: v2
 name: webapp
-description: Petit chart nginx pour l'entraînement CKAD
+description: Small nginx chart for CKAD practice
 type: application
 version: 0.1.0
 appVersion: "1.25"

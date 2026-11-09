@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Solution — exercice 03
+# Solution — exercise 03
 set -euo pipefail
 NS=ckad-03
 ANS="${CKAD_ANSWERS_DIR:-$HOME/ckad-answers}"
 
-# Diagnostic : les pods de la dernière révision sont en ImagePullBackOff
+# Diagnosis: pods of the latest revision are in ImagePullBackOff
 kubectl get pods -n "$NS"
 kubectl rollout history deploy/web -n "$NS"
 
-# 1. Image de la révision 1
+# 1. Image of revision 1
 kubectl rollout history deploy/web -n "$NS" --revision=1 \
   | awk '/Image:/ {print $2}' > "$ANS/03-revision1.txt"
 
-# 2. Rollback vers la révision précédente (la 2, nginx:1.27-alpine)
+# 2. Roll back to the previous revision (2, nginx:1.27-alpine)
 kubectl rollout undo deploy/web -n "$NS"
 kubectl rollout status deploy/web -n "$NS" --timeout=180s
 
-# 3. Stratégie
+# 3. Strategy
 kubectl patch deploy web -n "$NS" \
   -p '{"spec":{"strategy":{"type":"RollingUpdate","rollingUpdate":{"maxSurge":1,"maxUnavailable":0}}}}'
 

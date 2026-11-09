@@ -1,25 +1,25 @@
-# 03 — Rolling update et rollback
+# 03 — Rolling update and rollback
 
-**Domaine :** Application Deployment
-**Namespace :** `ckad-03`  ·  **Temps conseillé :** 7 min
+**Domain:** Application Deployment
+**Namespace:** `ckad-03`  ·  **Suggested time:** 7 min
 
-## Contexte
+## Context
 
-Le Deployment `web` vient d'être mis à jour par un collègue… et plus rien ne démarre.
+The Deployment `web` was just updated by a colleague… and nothing starts anymore.
 
-## Tâches
+## Tasks
 
-1. Écris dans le fichier `~/ckad-answers/03-revision1.txt` l'**image** utilisée par la
-   **révision 1** du Deployment `web` (une seule ligne, ex : `nginx:x.y`).
-2. Reviens à la **dernière révision fonctionnelle** du Deployment (sans le recréer).
-3. Configure la stratégie de mise à jour : `maxSurge: 1` et `maxUnavailable: 0`.
-4. Passe le Deployment à **4 réplicas** et vérifie qu'ils sont tous disponibles.
-5. Ajoute l'annotation `kubernetes.io/change-cause="rollback after broken release"` au Deployment.
+1. Write to `~/ckad-answers/03-revision1.txt` the **image** used by **revision 1**
+   of the Deployment `web` (a single line, e.g. `nginx:x.y`).
+2. Roll back to the **last working revision** of the Deployment (do not recreate it).
+3. Configure the update strategy: `maxSurge: 1` and `maxUnavailable: 0`.
+4. Scale the Deployment to **4 replicas** and check they are all available.
+5. Add the annotation `kubernetes.io/change-cause="rollback after broken release"` to the Deployment.
 
-## Indices
+## Hints
 
-- `k rollout history deploy/web -n ckad-03` puis `--revision=1` pour le détail.
-- `k rollout undo deploy/web -n ckad-03` (ou `--to-revision=N`).
-- `k describe pod` ou `k get pods` pour comprendre pourquoi la dernière version ne démarre pas.
-- `k patch deploy web -p '{"spec":{"strategy":{...}}}'` ou `k edit`.
+- `k rollout history deploy/web -n ckad-03` then `--revision=1` for details.
+- `k rollout undo deploy/web -n ckad-03` (or `--to-revision=N`).
+- `k describe pod` or `k get pods` to understand why the latest version doesn't start.
+- `k patch deploy web -p '{"spec":{"strategy":{...}}}'` or `k edit`.
 - `k annotate deploy web kubernetes.io/change-cause="..."`

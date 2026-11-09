@@ -1,29 +1,29 @@
-# 06 — Dépannage d'une application cassée
+# 06 — Troubleshooting a broken application
 
-**Domaine :** Application Observability and Maintenance
-**Namespace :** `ckad-06`  ·  **Temps conseillé :** 9 min
+**Domain:** Application Observability and Maintenance
+**Namespace:** `ckad-06`  ·  **Suggested time:** 9 min
 
-## Contexte
+## Context
 
-Dans `ckad-06`, l'équipe a déployé un Deployment `backend`, son Service `backend` et un pod `worker`.
-Rien ne fonctionne. Les noms des ressources ne doivent **pas** changer.
+In `ckad-06`, the team deployed a Deployment `backend`, its Service `backend` and a pod `worker`.
+Nothing works. Resource names must **not** change.
 
-## Tâches
+## Tasks
 
-1. Le Service `backend` doit répondre en HTTP (port **80**) depuis un pod du namespace :
+1. The Service `backend` must answer over HTTP (port **80**) from a pod in the namespace:
    `k run tmp --rm -it --image=busybox:1.36 -n ckad-06 -- wget -qO- http://backend`
-   Trouve et corrige **tous** les problèmes (il y en a plusieurs).
-2. Le pod `worker` est en CrashLoopBackOff.
-   - Écris le **message d'erreur exact** affiché par le conteneur dans `~/ckad-answers/06-worker-error.txt`.
-   - Corrige le pod pour qu'il passe en `Running` en définissant la variable `DB_HOST=postgres.ckad-06.svc`.
-3. Écris dans `~/ckad-answers/06-events.txt` les événements de type `Warning` du namespace,
-   triés par date (`.lastTimestamp`).
+   Find and fix **all** the problems (there are several).
+2. The pod `worker` is in CrashLoopBackOff.
+   - Write the **exact error message** printed by the container to `~/ckad-answers/06-worker-error.txt`.
+   - Fix the pod so it becomes `Running` by setting the variable `DB_HOST=postgres.ckad-06.svc`.
+3. Write the `Warning` events of the namespace, sorted by date (`.lastTimestamp`),
+   to `~/ckad-answers/06-events.txt`.
 
-## Indices
+## Hints
 
 - `k get pods,svc,endpointslices -n ckad-06` ; `k describe pod ...`
-- Compare le `selector` du Service avec les labels réels des pods (`--show-labels`).
-- Compare le `targetPort` du Service avec le port écouté par le conteneur.
+- Compare the Service `selector` with the actual pod labels (`--show-labels`).
+- Compare the Service `targetPort` with the port the container listens on.
 - `k logs worker -n ckad-06 --previous`
-- On ne peut pas modifier l'env d'un pod existant : `k get pod worker -o yaml > w.yaml`, édite, puis `k replace --force -f w.yaml`.
+- You can't change the env of an existing pod: `k get pod worker -o yaml > w.yaml`, edit, then `k replace --force -f w.yaml`.
 - `k get events --field-selector type=Warning --sort-by=.lastTimestamp`
